@@ -8,7 +8,8 @@ import (
 )
 
 var benchList *SkipList
-var discard *Element
+
+// var discard *Element
 
 func init() {
 	// Initialize a big SkipList for the Get() benchmark
@@ -24,6 +25,9 @@ func init() {
 	fmt.Printf("Structure sizes: SkipList is %v, Element is %v bytes\n", unsafe.Sizeof(sl), unsafe.Sizeof(el))
 }
 
+// checkSanity
+//
+// Sanity check: https://en.wikipedia.org/wiki/Sanity_check
 func checkSanity(list *SkipList, t *testing.T) {
 	// each level must be correctly ordered
 	for k, v := range list.next {
@@ -62,9 +66,7 @@ func checkSanity(list *SkipList, t *testing.T) {
 }
 
 func TestBasicIntCRUD(t *testing.T) {
-	var list *SkipList
-
-	list = New()
+	list := New()
 
 	list.Set(10, 1)
 	list.Set(60, 2)
