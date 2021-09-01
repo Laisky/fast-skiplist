@@ -7,8 +7,11 @@ import (
 )
 
 const (
+	// DefaultMaxLevel default height/level of the list
+	//
 	// Suitable for math.Floor(math.Pow(math.E, 18)) == 65659969 elements in list
-	DefaultMaxLevel    int     = 18
+	DefaultMaxLevel int = 18
+	// DefaultProbability default probability of a node could hoist to the higher level
 	DefaultProbability float64 = 1 / math.E
 )
 
@@ -28,11 +31,14 @@ func (list *SkipList) Set(key float64, value interface{}) *Element {
 	var element *Element
 	prevs := list.getPrevElementNodes(key)
 
-	if element = prevs[0].next[0]; element != nil && element.key <= key {
+	// if key == second element, than update and return the second element
+	if element = prevs[0].next[0]; element != nil && element.key == key {
 		element.value = value
 		return element
 	}
 
+	// make new node and generate the random level,
+	// this node will appears from level 0 to the random level.
 	element = &Element{
 		elementNode: elementNode{
 			next: make([]*Element, list.randLevel()),
@@ -41,6 +47,7 @@ func (list *SkipList) Set(key float64, value interface{}) *Element {
 		value: value,
 	}
 
+	// insert new node into skiplist.
 	for i := range element.next {
 		element.next[i] = prevs[i].next[i]
 		prevs[i].next[i] = element
@@ -53,8 +60,8 @@ func (list *SkipList) Set(key float64, value interface{}) *Element {
 // Get finds an element by key. It returns element pointer if found, nil if not found.
 // Locking is optimistic and happens only after searching with a fast check for deletion after locking.
 func (list *SkipList) Get(key float64) *Element {
-	list.mutex.Lock()
-	defer list.mutex.Unlock()
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
 
 	var prev *elementNode = &list.elementNode
 	var next *Element
@@ -68,7 +75,7 @@ func (list *SkipList) Get(key float64) *Element {
 		}
 	}
 
-	if next != nil && next.key <= key {
+	if next != nil && next.key == key {
 		return next
 	}
 
@@ -100,20 +107,28 @@ func (list *SkipList) Remove(key float64) *Element {
 // Finds the previous nodes on each level relative to the current Element and
 // caches them. This approach is similar to a "search finger" as described by Pugh:
 // http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.17.524
+//
+// 从上到下，从左到右搜索跳表索引，返回每一层的命中结点。
+// 下标就是层数，[0] 是最底层，[maxLevel - 1] 是最顶层。
 func (list *SkipList) getPrevElementNodes(key float64) []*elementNode {
 	var prev *elementNode = &list.elementNode
 	var next *Element
 
 	prevs := list.prevNodesCache
 
+	// 从最上层开始找
 	for i := list.maxLevel - 1; i >= 0; i-- {
+		// next 是当前层的下一个节点
 		next = prev.next[i]
 
+		// 水平遍历，直到到达尾部，或者 key > next，
+		// 说明当前层就选择当前的节点（prev）
 		for next != nil && key > next.key {
 			prev = &next.elementNode
 			next = next.next[i]
 		}
 
+		// 将每一层所选择的节点存入 prevs 中
 		prevs[i] = prev
 	}
 
@@ -127,6 +142,9 @@ func (list *SkipList) SetProbability(newProbability float64) {
 	list.probTable = probabilityTable(list.probability, list.maxLevel)
 }
 
+// randLevel generate the height/level of a node
+//
+// generate an random value, and use the probability table to find it's highest level.
 func (list *SkipList) randLevel() (level int) {
 	// Our random number source only has Int63(), so we have to produce a float64 from it
 	// Reference: https://golang.org/src/math/rand/rand.go#L150
