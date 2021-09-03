@@ -211,17 +211,17 @@ func BenchmarkIncGet(b *testing.B) {
 		b.SetBytes(int64(b.N))
 	})
 
-	// b.Run("get2", func(b *testing.B) {
-	// 	b.ReportAllocs()
-	// 	for i := 0; i < b.N; i++ {
-	// 		res := benchList.Get2(float64(i))
-	// 		if res == nil {
-	// 			b.Fatal("failed to Get an element that should exist")
-	// 		}
-	// 	}
+	b.Run("get2", func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			res := benchList.Get2(float64(i))
+			if res == nil {
+				b.Fatal("failed to Get an element that should exist")
+			}
+		}
 
-	// 	b.SetBytes(int64(b.N))
-	// })
+		b.SetBytes(int64(b.N))
+	})
 }
 
 func BenchmarkDecSet(b *testing.B) {

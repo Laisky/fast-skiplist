@@ -72,10 +72,6 @@ func (list *SkipList) Get(key float64) *Element {
 	var next *Element
 
 	for i := list.maxLevel - 1; i >= 0; i-- {
-		if next != nil && next.key == key {
-			return next
-		}
-
 		next = prev.next[i]
 
 		for next != nil && key > next.key {
