@@ -1,6 +1,7 @@
 package skiplist
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -32,7 +33,11 @@ func (list *SkipList) Set(key float64, value interface{}) *Element {
 	prevs := list.getPrevElementNodes(key)
 
 	// if key == second element, than update and return the second element
-	if element = prevs[0].next[0]; element != nil && element.key == key {
+	if element = prevs[0].next[0]; element != nil && element.key <= key {
+		if element.key < key {
+			fmt.Println(element.key)
+		}
+
 		element.value = value
 		return element
 	}
