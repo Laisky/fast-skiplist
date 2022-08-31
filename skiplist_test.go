@@ -7,24 +7,28 @@ import (
 	"unsafe"
 )
 
-var benchList *SkipList
-var discard *Element
+var benchList *SkipList[float64]
+
+// var discard *Element
 
 func init() {
 	// Initialize a big SkipList for the Get() benchmark
-	benchList = New()
+	benchList = New[float64]()
 
 	for i := 0; i <= 10000000; i++ {
 		benchList.Set(float64(i), [1]byte{})
 	}
 
 	// Display the sizes of our basic structs
-	var sl SkipList
-	var el Element
+	var sl SkipList[float64]
+	var el Element[float64]
 	fmt.Printf("Structure sizes: SkipList is %v, Element is %v bytes\n", unsafe.Sizeof(sl), unsafe.Sizeof(el))
 }
 
-func checkSanity(list *SkipList, t *testing.T) {
+// checkSanity
+//
+// Sanity check: https://en.wikipedia.org/wiki/Sanity_check
+func checkSanity(list *SkipList[float64], t *testing.T) {
 	// each level must be correctly ordered
 	for k, v := range list.next {
 		//t.Log("Level", k)
@@ -62,9 +66,7 @@ func checkSanity(list *SkipList, t *testing.T) {
 }
 
 func TestBasicIntCRUD(t *testing.T) {
-	var list *SkipList
-
-	list = New()
+	list := New[float64]()
 
 	list.Set(10, 1)
 	list.Set(60, 2)
@@ -114,13 +116,13 @@ func TestBasicIntCRUD(t *testing.T) {
 
 func TestChangeLevel(t *testing.T) {
 	var i float64
-	list := New()
+	list := New[float64]()
 
 	if list.maxLevel != DefaultMaxLevel {
 		t.Fatal("max level must equal default max value")
 	}
 
-	list = NewWithMaxLevel(4)
+	list = NewWithMaxLevel[float64](4)
 	if list.maxLevel != 4 {
 		t.Fatal("wrong maxLevel (wanted 4)", list.maxLevel)
 	}
@@ -143,12 +145,12 @@ func TestChangeLevel(t *testing.T) {
 }
 
 func TestMaxLevel(t *testing.T) {
-	list := NewWithMaxLevel(DefaultMaxLevel + 1)
+	list := NewWithMaxLevel[float64](DefaultMaxLevel + 1)
 	list.Set(0, struct{}{})
 }
 
 func TestChangeProbability(t *testing.T) {
-	list := New()
+	list := New[float64]()
 
 	if list.probability != DefaultProbability {
 		t.Fatal("new lists should have P value = DefaultProbability")
@@ -161,7 +163,7 @@ func TestChangeProbability(t *testing.T) {
 }
 
 func TestConcurrency(t *testing.T) {
-	list := New()
+	list := New[float64]()
 
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
@@ -187,7 +189,7 @@ func TestConcurrency(t *testing.T) {
 
 func BenchmarkIncSet(b *testing.B) {
 	b.ReportAllocs()
-	list := New()
+	list := New[float64]()
 
 	for i := 0; i < b.N; i++ {
 		list.Set(float64(i), [1]byte{})
@@ -197,20 +199,34 @@ func BenchmarkIncSet(b *testing.B) {
 }
 
 func BenchmarkIncGet(b *testing.B) {
-	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
-		res := benchList.Get(float64(i))
-		if res == nil {
-			b.Fatal("failed to Get an element that should exist")
+	b.Run("get1", func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			res := benchList.Get(float64(i))
+			if res == nil {
+				b.Fatal("failed to Get an element that should exist")
+			}
 		}
-	}
 
-	b.SetBytes(int64(b.N))
+		b.SetBytes(int64(b.N))
+	})
+
+	b.Run("get2", func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			res := benchList.Get(float64(i))
+			if res == nil {
+				b.Fatal("failed to Get an element that should exist")
+			}
+		}
+
+		b.SetBytes(int64(b.N))
+	})
 }
 
 func BenchmarkDecSet(b *testing.B) {
 	b.ReportAllocs()
-	list := New()
+	list := New[float64]()
 
 	for i := b.N; i > 0; i-- {
 		list.Set(float64(i), [1]byte{})
