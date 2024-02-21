@@ -25,6 +25,8 @@ func (list *SkipList[T]) Len() int {
 
 // Front returns the head node of the list.
 func (list *SkipList[T]) Front() *Element[T] {
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
 	return list.next[0]
 }
 
