@@ -58,8 +58,8 @@ func checkSanity(list *SkipList[float64], t *testing.T) {
 		}
 
 		if k == 0 {
-			if cnt != list.Length {
-				t.Fatalf("list len must match the level 0 nodes count. [cur:%v] [level0:%v]", cnt, list.Length)
+			if cnt != list.length {
+				t.Fatalf("list len must match the level 0 nodes count. [cur:%v] [level0:%v]", cnt, list.length)
 			}
 		}
 	}
@@ -133,8 +133,8 @@ func TestChangeLevel(t *testing.T) {
 
 	checkSanity(list, t)
 
-	if list.Length != 201 {
-		t.Fatal("wrong list length", list.Length)
+	if list.length != 201 {
+		t.Fatal("wrong list length", list.length)
 	}
 
 	for c := list.Front(); c != nil; c = c.Next() {
@@ -182,7 +182,7 @@ func TestConcurrency(t *testing.T) {
 	}()
 
 	wg.Wait()
-	if list.Length != 100000 {
+	if list.length != 100000 {
 		t.Fail()
 	}
 }

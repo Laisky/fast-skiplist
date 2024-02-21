@@ -16,6 +16,13 @@ const (
 	DefaultProbability float64 = 1 / math.E
 )
 
+// Len returns the number of elements in the list.
+func (list *SkipList[T]) Len() int {
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
+	return list.length
+}
+
 // Front returns the head node of the list.
 func (list *SkipList[T]) Front() *Element[T] {
 	return list.next[0]
@@ -58,7 +65,7 @@ func (list *SkipList[T]) Set(key T, value interface{}) *Element[T] {
 		prevs[i].next[i] = element
 	}
 
-	list.Length++
+	list.length++
 	return element
 }
 
@@ -101,7 +108,7 @@ func (list *SkipList[T]) Remove(key T) *Element[T] {
 			prevs[k].next[k] = v
 		}
 
-		list.Length--
+		list.length--
 		return element
 	}
 

@@ -53,7 +53,7 @@ type SkipList[T Sortable] struct {
 	elementNode[T]
 	// maxLevel 最大高度
 	maxLevel   int
-	Length     int
+	length     int
 	randSource rand.Source
 	// probability 节点上升的概率
 	probability float64
